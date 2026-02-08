@@ -1,0 +1,94 @@
+{
+  "nextIds": {
+    "pet": 8,
+    "receipt": 5
+  },
+  "pets": [
+    {
+      "id": 1,
+      "latinName": "Canis lupus familiaris",
+      "name": "Rex",
+      "type": "MAMMAL",
+      "salePrice": 400,
+      "sold": true
+    },
+    {
+      "id": 2,
+      "latinName": "Felis catus",
+      "name": "Maca",
+      "type": "MAMMAL",
+      "salePrice": 300,
+      "sold": false
+    },
+    {
+      "id": 3,
+      "latinName": "Python regius",
+      "name": "Kobra",
+      "type": "REPTILE",
+      "salePrice": 550,
+      "sold": false
+    },
+    {
+      "id": 4,
+      "latinName": "Cavia porcellus",
+      "name": "Bubi",
+      "type": "RODENT",
+      "salePrice": 150,
+      "sold": true
+    },
+    {
+      "id": 5,
+      "latinName": "Mesocricetus auratus",
+      "name": "Nix",
+      "type": "RODENT",
+      "salePrice": 120,
+      "sold": true
+    },
+    {
+      "id": 6,
+      "latinName": "Latin primjer",
+      "name": "Ljubimac",
+      "type": "RODENT",
+      "salePrice": 1,
+      "sold": false
+    },
+    {
+      "id": 7,
+      "latinName": "VelikiPas",
+      "name": "Riki",
+      "type": "MAMMAL",
+      "salePrice": 1,
+      "sold": true
+    }
+  ],
+  "receipts": [
+    {
+      "id": 1,
+      "sellerName": "template_seller",
+      "soldAt": "2026-01-12T10:05:00.000Z",
+      "totalAmount": 102,
+      "petId": 5
+    },
+    {
+      "id": 2,
+      "sellerName": "Seller",
+      "soldAt": "2026-02-08T13:26:00.407Z",
+      "totalAmount": 127.5,
+      "petId": 4
+    },
+    {
+      "id": 3,
+      "sellerName": "Seller2",
+      "soldAt": "2026-02-08T13:45:09.417Z",
+      "totalAmount": 340,
+      "petId": 1
+    },
+    {
+      "id": 4,
+      "sellerName": "Seller3",
+      "soldAt": "2026-02-08T15:31:00.000Z",
+      "totalAmount": 1.1,
+      "petId": 7
+    }
+  ]
+}
