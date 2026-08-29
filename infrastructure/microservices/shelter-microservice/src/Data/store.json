@@ -1,0 +1,146 @@
+{
+  "nextIds": {
+    "pet": 356,
+    "reservation": 4
+  },
+  "shelters": [
+    {
+      "id": 1,
+      "name": "New Home",
+      "city": "Novi Sad",
+      "phone": "+381 21 555 101"
+    },
+    {
+      "id": 2,
+      "name": "Little Paws",
+      "city": "Belgrade",
+      "phone": "+381 11 555 202"
+    },
+    {
+      "id": 3,
+      "name": "Best Friend",
+      "city": "Subotica",
+      "phone": "+381 24 555 303"
+    },
+    {
+      "id": 4,
+      "name": "Safe Haven",
+      "city": "Zrenjanin",
+      "phone": "+381 23 555 404"
+    }
+  ],
+  "pets": [
+    {
+      "id": 292,
+      "shelterId": 1,
+      "name": "Puffy",
+      "breed": "Guinea Pig",
+      "type": "RODENT",
+      "birthYear": 2021,
+      "status": "RESERVED",
+      "addedAt": "2026-08-29T17:02:06.229Z"
+    },
+    {
+      "id": 295,
+      "shelterId": 1,
+      "name": "Bella",
+      "breed": "Mixed Breed",
+      "type": "DOG",
+      "birthYear": 2024,
+      "status": "RESERVED",
+      "addedAt": "2026-08-29T17:02:48.498Z"
+    },
+    {
+      "id": 348,
+      "shelterId": 1,
+      "name": "Oliver",
+      "breed": "British Shorthair",
+      "type": "CAT",
+      "birthYear": 2018,
+      "status": "AVAILABLE",
+      "addedAt": "2026-08-29T17:14:37.297Z"
+    },
+    {
+      "id": 351,
+      "shelterId": 3,
+      "name": "Rio",
+      "breed": "Lovebird",
+      "type": "BIRD",
+      "birthYear": 2018,
+      "status": "AVAILABLE",
+      "addedAt": "2026-08-29T17:15:34.908Z"
+    },
+    {
+      "id": 352,
+      "shelterId": 2,
+      "name": "Lola",
+      "breed": "European Shorthair",
+      "type": "CAT",
+      "birthYear": 2018,
+      "status": "AVAILABLE",
+      "addedAt": "2026-08-29T17:15:43.458Z"
+    },
+    {
+      "id": 353,
+      "shelterId": 1,
+      "name": "Daisy",
+      "breed": "Golden Retriever",
+      "type": "DOG",
+      "birthYear": 2024,
+      "status": "AVAILABLE",
+      "addedAt": "2026-08-29T17:15:49.913Z"
+    },
+    {
+      "id": 354,
+      "shelterId": 3,
+      "name": "Max",
+      "breed": "Beagle",
+      "type": "DOG",
+      "birthYear": 2024,
+      "status": "AVAILABLE",
+      "addedAt": "2026-08-29T17:16:17.874Z"
+    },
+    {
+      "id": 355,
+      "shelterId": 4,
+      "name": "Mia",
+      "breed": "Siamese",
+      "type": "CAT",
+      "birthYear": 2023,
+      "status": "AVAILABLE",
+      "addedAt": "2026-08-29T17:16:27.480Z"
+    }
+  ],
+  "reservations": [
+    {
+      "id": 1,
+      "petId": 99,
+      "customerName": "John Smith",
+      "customerPhone": "+381 64 555 888",
+      "reservedBy": "seller",
+      "reservedAt": "2026-08-27T10:00:00.000Z",
+      "expiresAt": "2026-08-28T10:00:00.000Z",
+      "status": "EXPIRED"
+    },
+    {
+      "id": 2,
+      "petId": 292,
+      "customerName": "Neki naziv",
+      "customerPhone": "123 123 123",
+      "reservedBy": "seller",
+      "reservedAt": "2026-08-29T17:01:00.000Z",
+      "expiresAt": "2026-08-30T17:01:00.000Z",
+      "status": "ACTIVE"
+    },
+    {
+      "id": 3,
+      "petId": 295,
+      "customerName": "Customer",
+      "customerPhone": "111 111 111",
+      "reservedBy": "manager",
+      "reservedAt": "2026-08-29T17:02:00.000Z",
+      "expiresAt": "2026-08-30T17:02:00.000Z",
+      "status": "ACTIVE"
+    }
+  ]
+}

@@ -12,17 +12,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<AuthTokenClaimsType | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [sessionTime, setSessionTime] = useState<string | null>(null);
+  const [simulationDateTime, setSimulationDateTime] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load token from localStorage on mount
   useEffect(() => {
     const savedToken = readValueByKey("authToken");
-    const savedSessionTime = readValueByKey("sessionTime");
+    const savedSimulationDateTime = readValueByKey("simulationDateTime");
 
     if (savedToken) {
       if (isTokenExpired(savedToken)) {
         removeValueByKey("authToken");
-        removeValueByKey("sessionTime");
+        removeValueByKey("simulationDateTime");
         setIsLoading(false);
         return;
       }
@@ -31,25 +32,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (claims) {
         setToken(savedToken);
         setUser(claims);
-        setSessionTime(savedSessionTime);
+        setSimulationDateTime(savedSimulationDateTime);
+        setSessionTime(savedSimulationDateTime?.split("T")[1] ?? null);
       } else {
         removeValueByKey("authToken");
-        removeValueByKey("sessionTime");
+        removeValueByKey("simulationDateTime");
       }
     }
 
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, selectedSessionTime: string) => {
+  const login = (newToken: string, selectedSimulationDateTime: string) => {
     const claims = decodeJWT(newToken);
 
     if (claims && !isTokenExpired(newToken)) {
       setToken(newToken);
       setUser(claims);
-      setSessionTime(selectedSessionTime);
+      setSimulationDateTime(selectedSimulationDateTime);
+      setSessionTime(selectedSimulationDateTime.split("T")[1] ?? null);
       saveValueByKey("authToken", newToken);
-      saveValueByKey("sessionTime", selectedSessionTime);
+      saveValueByKey("simulationDateTime", selectedSimulationDateTime);
     } else {
       console.error("Invalid or expired token");
     }
@@ -59,8 +62,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(null);
     setUser(null);
     setSessionTime(null);
+    setSimulationDateTime(null);
     removeValueByKey("authToken");
-    removeValueByKey("sessionTime");
+    removeValueByKey("simulationDateTime");
   };
 
   const isAuthenticated = !!user && !!token;
@@ -69,6 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     token,
     sessionTime,
+    simulationDateTime,
     login,
     logout,
     isAuthenticated,

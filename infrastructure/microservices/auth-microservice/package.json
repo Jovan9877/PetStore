@@ -7,17 +7,15 @@
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start:dist": "node dist/src/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "ts-node test/run.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.15.3",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.27"
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

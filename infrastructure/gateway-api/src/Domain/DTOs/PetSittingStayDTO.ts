@@ -1,0 +1,1 @@
+export type PetSittingStayDTO = { id: number; petName: string; petType: string; birthYear: number; ownerName: string; ownerPhone: string; plannedHours: number; arrivalAt: string; checkedInBy: string; status: "ACTIVE" | "COMPLETED"; departureAt?: string; checkedOutBy?: string; billableHours?: number; totalAmount?: number };

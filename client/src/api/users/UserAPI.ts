@@ -22,7 +22,7 @@ export class UserAPI implements IUserAPI {
     ).data;
   }
 
-  async getUserById(token: string, id: number): Promise<UserDTO> {
+  async getUserById(token: string, id: string): Promise<UserDTO> {
     return (
       await this.axiosInstance.get<UserDTO>(`/users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },

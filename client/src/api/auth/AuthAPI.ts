@@ -3,6 +3,7 @@ import { LoginUserDTO } from "../../models/auth/LoginUserDTO";
 import { RegistrationUserDTO } from "../../models/auth/RegistrationUserDTO";
 import { IAuthAPI } from "./IAuthAPI";
 import { AuthResponseType } from "../../types/AuthResponseType";
+import { getErrorMessage } from "../../helpers/error_message";
 
 export class AuthAPI implements IAuthAPI {
   private readonly axiosInstance: AxiosInstance;
@@ -15,8 +16,8 @@ export class AuthAPI implements IAuthAPI {
     try {
       const response = await this.axiosInstance.post("/login", data);
       return this.normalizeAuthResponse(response.data, "login");
-    } catch (err: any) {
-      throw err?.response?.data?.message ?? "Login request failed.";
+    } catch (error: unknown) {
+      throw getErrorMessage(error, "Login request failed.");
     }
   }
 
@@ -24,44 +25,31 @@ export class AuthAPI implements IAuthAPI {
     try {
       const response = await this.axiosInstance.post("/register", data);
       return this.normalizeAuthResponse(response.data, "register");
-    } catch (err: any) {
-      throw err?.response?.data?.message ?? "Registration request failed.";
+    } catch (error: unknown) {
+      throw getErrorMessage(error, "Registration request failed.");
     }
   }
 
   private normalizeAuthResponse(
-    raw: any,
+    raw: unknown,
     mode: "login" | "register"
   ): AuthResponseType {
-    if (typeof raw?.success === "boolean") {
+    const payload = raw as Partial<AuthResponseType>;
+    if (typeof payload.success === "boolean") {
       return {
-        success: raw.success,
-        message: raw.message,
-        token: raw.token,
+        success: payload.success,
+        message: payload.message,
+        token: payload.token,
       };
     }
 
-    if (typeof raw?.authenificated === "boolean") {
-      return {
-        success: raw.authenificated,
-        message:
-          raw.message ??
-          (raw.authenificated
-            ? undefined
-            : mode === "login"
-              ? "Invalid credentials!"
-              : "Registration failed."),
-        token: raw.token,
-      };
-    }
-
-    if (raw?.token) {
-      return { success: true, token: raw.token, message: raw.message };
+    if (payload.token) {
+      return { success: true, token: payload.token, message: payload.message };
     }
 
     return {
       success: false,
-      message: raw?.message ?? "Unexpected authentication response.",
+      message: payload.message ?? `Unexpected ${mode} response.`,
     };
   }
 }

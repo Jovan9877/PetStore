@@ -1,18 +1,20 @@
 import express from 'express';
 import cors from 'cors';
-import "reflect-metadata";
-import { initialize_database } from './Database/InitializeConnection';
 import dotenv from 'dotenv';
-import { Repository } from 'typeorm';
-import { User } from './Domain/models/User';
-import { Db } from './Database/DbConnectionPool';
+import path from "path";
 import { IAuthService } from './Domain/services/IAuthService';
 import { AuthService } from './Services/AuthService';
 import { AuthController } from './WebAPI/controllers/AuthController';
-import { ILogerService } from './Domain/services/ILogerService';
-import { LogerService } from './Services/LogerService';
+import { ILoggerService } from './Domain/services/ILoggerService';
+import { FileLoggerService } from './Services/FileLoggerService';
+import { JsonUserRepository } from './Repositories/JsonUserRepository';
+import { requireInternalApiKey } from './WebAPI/middlewares/InternalApiKeyMiddleware';
 
 dotenv.config({ quiet: true });
+
+if (!process.env.JWT_SECRET || !process.env.INTERNAL_API_KEY) {
+  throw new Error("JWT_SECRET and INTERNAL_API_KEY must be configured.");
+}
 
 const app = express();
 
@@ -27,18 +29,18 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(requireInternalApiKey);
 
-initialize_database();
-
-// ORM Repositories
-const userRepository: Repository<User> = Db.getRepository(User);
+const userDataPath = path.resolve(process.cwd(), process.env.USER_DATA_PATH ?? "../../Data/users.json");
+const logPath = path.resolve(process.cwd(), "logs/events.log");
+const userRepository = new JsonUserRepository(userDataPath);
 
 // Services
-const authService: IAuthService = new AuthService(userRepository);
-const logerService: ILogerService = new LogerService();
+const loggerService: ILoggerService = new FileLoggerService(logPath);
+const authService: IAuthService = new AuthService(userRepository, loggerService);
 
 // WebAPI routes
-const authController = new AuthController(authService, logerService);
+const authController = new AuthController(authService, loggerService);
 
 // Registering routes
 app.use('/api/v1', authController.getRouter());

@@ -1,0 +1,23 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { JsonShelterRepository } from "./Repositories/JsonShelterRepository";
+import { ClockService } from "./Services/ClockService";
+import { FileLoggerService } from "./Services/FileLoggerService";
+import { PoolPetGeneratorService } from "./Services/PoolPetGeneratorService";
+import { ShelterService } from "./Services/ShelterService";
+import { ShelterSimulationService } from "./Services/ShelterSimulationService";
+import { ShelterController } from "./WebAPI/controllers/ShelterController";
+import { requireInternalApiKey } from "./WebAPI/middlewares/InternalApiKeyMiddleware";
+
+dotenv.config({ quiet: true });
+if (!process.env.INTERNAL_API_KEY) throw new Error("INTERNAL_API_KEY must be configured.");
+const app = express();
+app.use(cors({ origin: process.env.CORS_ORIGIN ?? "http://localhost:4000", methods: process.env.CORS_METHODS?.split(",") ?? ["GET", "POST"] }));
+app.use(express.json()); app.use(requireInternalApiKey);
+const logger = new FileLoggerService(path.resolve(process.cwd(), "logs/events.log"));
+const service = new ShelterService(new JsonShelterRepository(path.resolve(process.cwd(), "src/Data/store.json")), new PoolPetGeneratorService(), new ClockService(), logger, Number(process.env.RESERVATION_HOURS ?? 24));
+new ShelterSimulationService(service, logger, Number(process.env.SIMULATION_MIN_MS ?? 5000), Number(process.env.SIMULATION_MAX_MS ?? 10000)).start();
+app.use("/api/v1", new ShelterController(service).getRouter());
+export default app;

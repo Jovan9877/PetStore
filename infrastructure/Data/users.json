@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "id": "83bf9274-1d0f-43c3-a8bb-76fcdbfe519d",
+      "username": "manager",
+      "password": "$2b$10$YhiG.JUunMmFlVHzsZ.cpuPsEVZrgwr5hmuPV6rRK1OrhMQIc7eXC",
+      "firstName": "Milan",
+      "lastName": "Manager",
+      "role": "MANAGER"
+    },
+    {
+      "id": "55bfa153-031e-4bee-a8ba-dce87c79063f",
+      "username": "seller",
+      "password": "$2b$10$6GklFGF4FprFrTLozxAllO0x7M7iZnRbJ.NAbnP.6wragH.ylcQFe",
+      "firstName": "Sara",
+      "lastName": "Seller",
+      "role": "SELLER"
+    }
+  ]
+}

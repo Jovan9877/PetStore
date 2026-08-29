@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { IAuthAPI } from "../../api/auth/IAuthAPI";
 import { RegistrationUserDTO } from "../../models/auth/RegistrationUserDTO";
-import { UserRole } from "../../enums/UserRole";
+import { getErrorMessage } from "../../helpers/error_message";
 
 type RegisterFormProps = {
   authAPI: IAuthAPI;
 };
 
+const initialRegistration: RegistrationUserDTO = {
+  username: "",
+  password: "",
+  firstName: "",
+  lastName: "",
+};
+
 export const RegisterForm: React.FC<RegisterFormProps> = ({ authAPI }) => {
-  const [formData, setFormData] = useState<RegistrationUserDTO>({
-    username: "",
-    email: "",
-    password: "",
-    role: UserRole.SELLER,
-  });
+  const [formData, setFormData] = useState<RegistrationUserDTO>(initialRegistration);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -38,8 +40,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ authAPI }) => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    if (formData.password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(formData.password)) {
+      setError("Password must be at least 8 characters and include uppercase, lowercase, number and special character.");
       return;
     }
 
@@ -48,21 +50,24 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ authAPI }) => {
     try {
       const response = await authAPI.register({
         username: formData.username.trim(),
-        email: formData.email.trim(),
         password: formData.password,
-        role: formData.role,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
       });
 
       if (response.success) {
         setSuccess("Registration successful. Please login and choose simulation time.");
+        setFormData(initialRegistration);
+        setConfirmPassword("");
       } else {
         setError(response.message || "Registration failed. Please try again.");
+        setFormData(initialRegistration);
+        setConfirmPassword("");
       }
-    } catch (err: any) {
-      setError(
-        (typeof err === "string" ? err : err?.response?.data?.message) ||
-        "An error occurred. Please try again."
-      );
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "An error occurred. Please try again."));
+      setFormData(initialRegistration);
+      setConfirmPassword("");
     } finally {
       setIsLoading(false);
     }
@@ -87,36 +92,33 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ authAPI }) => {
       </div>
 
       <div>
-        <label htmlFor="email" style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 600 }}>
-          Email
+        <label htmlFor="firstName" style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 600 }}>
+          First name
         </label>
         <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
+          id="firstName"
+          name="firstName"
+          value={formData.firstName}
           onChange={handleChange}
-          placeholder="your.email@example.com"
+          placeholder="Enter first name"
           required
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label htmlFor="role" style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 600 }}>
-          Role
+        <label htmlFor="lastName" style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 600 }}>
+          Last name
         </label>
-        <select
-          id="role"
-          name="role"
-          value={formData.role}
+        <input
+          id="lastName"
+          name="lastName"
+          value={formData.lastName}
           onChange={handleChange}
+          placeholder="Enter last name"
           required
           disabled={isLoading}
-        >
-          <option value={UserRole.SELLER}>Seller</option>
-          <option value={UserRole.ADMIN}>Admin</option>
-        </select>
+        />
       </div>
 
       <div>
@@ -129,7 +131,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ authAPI }) => {
           name="password"
           value={formData.password}
           onChange={handleChange}
-          placeholder="Create a password (min 6 characters)"
+          placeholder="At least 8 chars, upper/lower/number/symbol"
+          minLength={8}
           required
           disabled={isLoading}
         />

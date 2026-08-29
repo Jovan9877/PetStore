@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { PetType } from "../Domain/enums/PetType";
 
-type JsonDb = {
+export type JsonDb = {
   nextIds: {
     pet: number;
     receipt: number;
@@ -25,6 +25,8 @@ type JsonDb = {
 };
 
 export class JsonDatabaseService {
+  private writeQueue: Promise<void> = Promise.resolve();
+
   constructor(private readonly filePath: string) {}
 
   async read(): Promise<JsonDb> {
@@ -35,6 +37,18 @@ export class JsonDatabaseService {
 
   async write(data: JsonDb): Promise<void> {
     await fs.writeFile(this.filePath, JSON.stringify(data, null, 2), "utf-8");
+  }
+
+  async transaction<T>(operation: (database: JsonDb) => T): Promise<T> {
+    let result!: T;
+    const task = this.writeQueue.then(async () => {
+      const database = await this.read();
+      result = operation(database);
+      await this.write(database);
+    });
+    this.writeQueue = task.catch(() => undefined);
+    await task;
+    return result;
   }
 
   private async ensureFileExists(): Promise<void> {

@@ -1,0 +1,23 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { JsonPetSittingRepository } from "./Repositories/JsonPetSittingRepository";
+import { ClockService } from "./Services/ClockService";
+import { FileLoggerService } from "./Services/FileLoggerService";
+import { HourlyPetSittingPricingService } from "./Services/HourlyPetSittingPricingService";
+import { PetSittingService } from "./Services/PetSittingService";
+import { PetSittingController } from "./WebAPI/controllers/PetSittingController";
+import { requireInternalApiKey } from "./WebAPI/middlewares/InternalApiKeyMiddleware";
+
+dotenv.config({ quiet: true });
+if (!process.env.INTERNAL_API_KEY) throw new Error("INTERNAL_API_KEY must be configured.");
+const app = express();
+app.use(cors({ origin: process.env.CORS_ORIGIN ?? "http://localhost:4000", methods: process.env.CORS_METHODS?.split(",") ?? ["GET", "POST"] }));
+app.use(express.json());
+app.use(requireInternalApiKey);
+const repository = new JsonPetSittingRepository(path.resolve(process.cwd(), "src/Data/store.json"));
+const logger = new FileLoggerService(path.resolve(process.cwd(), "logs/events.log"));
+const service = new PetSittingService(repository, new HourlyPetSittingPricingService(Number(process.env.HOURLY_RATE ?? 200)), new ClockService(), logger);
+app.use("/api/v1", new PetSittingController(service).getRouter());
+export default app;

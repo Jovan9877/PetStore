@@ -1,0 +1,1 @@
+export type CreatePetSittingDTO = { petName: string; petType: "DOG" | "CAT" | "BIRD" | "RODENT" | "REPTILE" | "OTHER"; birthYear: number; ownerName: string; ownerPhone: string; plannedHours: number };

@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { CreatePlantDTO } from "../../../models/plants/CreatePlantDTO";
+import { CreatePetDTO } from "../../../models/pets/CreatePetDTO";
 
 type PetDialogProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (pet: CreatePlantDTO) => Promise<void>;
+  onSave: (pet: CreatePetDTO) => Promise<void>;
   isLoading: boolean;
 };
 
-const initialState: CreatePlantDTO = {
+const initialState: CreatePetDTO = {
   latinName: "",
   name: "",
   type: "MAMMAL",
@@ -16,7 +16,7 @@ const initialState: CreatePlantDTO = {
 };
 
 export const PetDialog: React.FC<PetDialogProps> = ({ isOpen, onClose, onSave, isLoading }) => {
-  const [form, setForm] = useState<CreatePlantDTO>(initialState);
+  const [form, setForm] = useState<CreatePetDTO>(initialState);
 
   useEffect(() => {
     if (isOpen) {
@@ -61,7 +61,7 @@ export const PetDialog: React.FC<PetDialogProps> = ({ isOpen, onClose, onSave, i
             />
             <select
               value={form.type}
-              onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as CreatePlantDTO["type"] }))}
+              onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as CreatePetDTO["type"] }))}
             >
               <option value="MAMMAL">MAMMAL</option>
               <option value="REPTILE">REPTILE</option>

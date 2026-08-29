@@ -27,30 +27,24 @@ export class JsonPetRepository implements IPetRepository {
   }
 
   async add(input: Omit<Pet, "id">): Promise<Pet> {
-    const db = await this.dbService.read();
-    const newPet: Pet = {
-      id: db.nextIds.pet,
-      ...input,
-    };
-
-    db.nextIds.pet += 1;
-    db.pets.push(newPet);
-
-    await this.dbService.write(db);
-    return newPet;
+    return this.dbService.transaction((db) => {
+      if (db.pets.filter((pet) => !pet.sold).length >= 10) {
+        throw new Error("The store can have at most 10 unsold pets.");
+      }
+      const newPet: Pet = { id: db.nextIds.pet, ...input };
+      db.nextIds.pet += 1;
+      db.pets.push(newPet);
+      return newPet;
+    });
   }
 
   async markAsSold(id: number): Promise<Pet> {
-    const db = await this.dbService.read();
-    const pet = db.pets.find((item) => item.id === id);
-
-    if (!pet) {
-      throw new Error(`Pet with ID ${id} not found.`);
-    }
-
-    pet.sold = true;
-    await this.dbService.write(db);
-
-    return pet;
+    return this.dbService.transaction((db) => {
+      const pet = db.pets.find((item) => item.id === id);
+      if (!pet) throw new Error(`Pet with ID ${id} not found.`);
+      if (pet.sold) throw new Error("Pet is already sold.");
+      pet.sold = true;
+      return pet;
+    });
   }
 }

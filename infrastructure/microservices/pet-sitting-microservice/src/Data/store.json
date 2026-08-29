@@ -1,0 +1,72 @@
+{
+  "nextIds": {
+    "stay": 4,
+    "receipt": 3
+  },
+  "stays": [
+    {
+      "id": 1,
+      "petName": "Luna",
+      "petType": "DOG",
+      "birthYear": 2021,
+      "ownerName": "Ana Jovanović",
+      "ownerPhone": "+381 64 111 222",
+      "plannedHours": 8,
+      "arrivalAt": "2026-08-28T07:00:00.000Z",
+      "checkedInBy": "seller",
+      "status": "COMPLETED",
+      "departureAt": "2026-08-29T17:01:00.000Z",
+      "checkedOutBy": "seller",
+      "billableHours": 35,
+      "totalAmount": 7000
+    },
+    {
+      "id": 2,
+      "petName": "Miki",
+      "petType": "CAT",
+      "birthYear": 2020,
+      "ownerName": "Marko Marković",
+      "ownerPhone": "+381 65 333 444",
+      "plannedHours": 4,
+      "arrivalAt": "2026-08-27T08:00:00.000Z",
+      "checkedInBy": "seller",
+      "status": "COMPLETED",
+      "departureAt": "2026-08-27T11:10:00.000Z",
+      "checkedOutBy": "seller",
+      "billableHours": 4,
+      "totalAmount": 800
+    },
+    {
+      "id": 3,
+      "petName": "Ljubimac",
+      "petType": "DOG",
+      "birthYear": 2022,
+      "ownerName": "Naziv",
+      "ownerPhone": "123 456 678",
+      "plannedHours": 3,
+      "arrivalAt": "2026-08-29T17:01:00.000Z",
+      "checkedInBy": "seller",
+      "status": "ACTIVE"
+    }
+  ],
+  "receipts": [
+    {
+      "id": 1,
+      "stayId": 2,
+      "sellerName": "seller",
+      "issuedAt": "2026-08-27T11:10:00.000Z",
+      "billableHours": 4,
+      "hourlyRate": 200,
+      "totalAmount": 800
+    },
+    {
+      "id": 2,
+      "stayId": 1,
+      "sellerName": "seller",
+      "issuedAt": "2026-08-29T17:01:00.000Z",
+      "billableHours": 35,
+      "hourlyRate": 200,
+      "totalAmount": 7000
+    }
+  ]
+}

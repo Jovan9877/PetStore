@@ -19,12 +19,15 @@ function createWindow() {
     minHeight: 600,
     fullscreen: false,
     frame: false,
+    title: 'OIB Pet Store',
+    icon: path.join(__dirname, '../dist/icon.png'),
     backgroundColor: '#202020',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   })
 
@@ -36,9 +39,12 @@ function createWindow() {
     win.loadFile(path.join(__dirname, '../dist/index.html'))
   }
 
-  //win?.maximize()
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  win.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false))
 
-  win?.webContents.openDevTools();
+  if (process.env.VITE_DEV_SERVER_URL) {
+    win.webContents.openDevTools()
+  }
   
   // IPC handlers
   ipcMain.on('window:minimize', () => win?.minimize())

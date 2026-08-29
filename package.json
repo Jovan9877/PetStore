@@ -3,9 +3,14 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev:backend": "concurrently -n auth,user,pet,gateway -c blue,green,magenta,yellow \"npm --prefix infrastructure/microservices/auth-microservice run dev\" \"npm --prefix infrastructure/microservices/user-microservice run dev\" \"npm --prefix infrastructure/microservices/pet-store-microservice run dev\" \"npm --prefix infrastructure/gateway-api run dev\"",
+    "dev:backend": "concurrently -n auth,user,pet,sitting,shelter,gateway -c blue,green,magenta,cyan,white,yellow \"npm --prefix infrastructure/microservices/auth-microservice run dev\" \"npm --prefix infrastructure/microservices/user-microservice run dev\" \"npm --prefix infrastructure/microservices/pet-store-microservice run dev\" \"npm --prefix infrastructure/microservices/pet-sitting-microservice run dev\" \"npm --prefix infrastructure/microservices/shelter-microservice run dev\" \"npm --prefix infrastructure/gateway-api run dev\"",
     "dev:frontend": "npm --prefix client run dev",
-    "dev": "concurrently -n backend,frontend -c cyan,white \"npm run dev:backend\" \"npm run dev:frontend\""
+    "dev": "concurrently -n backend,frontend -c cyan,white \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "typecheck": "npm --prefix client run typecheck && npm --prefix infrastructure/gateway-api run typecheck && npm --prefix infrastructure/microservices/auth-microservice run typecheck && npm --prefix infrastructure/microservices/user-microservice run typecheck && npm --prefix infrastructure/microservices/pet-store-microservice run typecheck && npm --prefix infrastructure/microservices/pet-sitting-microservice run typecheck && npm --prefix infrastructure/microservices/shelter-microservice run typecheck",
+    "build:client": "npm --prefix client run build:web",
+    "lint": "npm --prefix client run lint",
+    "test": "npm --prefix infrastructure/microservices/auth-microservice test && npm --prefix infrastructure/microservices/pet-store-microservice test && npm --prefix infrastructure/microservices/pet-sitting-microservice test && npm --prefix infrastructure/microservices/shelter-microservice test",
+    "build:backend": "npm --prefix infrastructure/gateway-api run build && npm --prefix infrastructure/microservices/auth-microservice run build && npm --prefix infrastructure/microservices/user-microservice run build && npm --prefix infrastructure/microservices/pet-store-microservice run build && npm --prefix infrastructure/microservices/pet-sitting-microservice run build && npm --prefix infrastructure/microservices/shelter-microservice run build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

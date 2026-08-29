@@ -1,5 +1,9 @@
+import { UserRole } from "../enums/UserRole";
+
 export type AuthTokenClaims = {
-  id: number;
+  id: string;
   username: string;
-  role: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
 };

@@ -221,6 +221,7 @@ button:disabled, .btn:disabled {
 }
 
 /* Input Fields */
+input:not([type]),
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -228,6 +229,9 @@ input[type="number"],
 input[type="search"],
 input[type="tel"],
 input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
 textarea,
 select {
   width: 100%;
@@ -242,6 +246,26 @@ select {
   font-family: inherit;
   transition: all var(--win11-transition-normal);
   outline: none;
+  color-scheme: dark;
+}
+
+/* Keep Chromium/Electron autofill consistent with the dark input theme. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--win11-text-primary);
+  caret-color: var(--win11-text-primary);
+  box-shadow: 0 0 0 1000px #303030 inset;
+  -webkit-box-shadow: 0 0 0 1000px #303030 inset;
+  border-color: var(--win11-divider);
+  transition: background-color 9999s ease-out 0s;
+}
+
+input:-webkit-autofill:focus {
+  border-color: var(--win11-accent);
+  box-shadow: 0 0 0 1000px #303030 inset, 0 0 0 1px var(--win11-accent);
+  -webkit-box-shadow: 0 0 0 1000px #303030 inset, 0 0 0 1px var(--win11-accent);
 }
 
 input:focus,

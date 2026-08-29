@@ -1,34 +1,48 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IPlantAPI } from "../api/plants/IPlantAPI";
+import { IPetAPI } from "../api/pets/IPetAPI";
 import { IUserAPI } from "../api/users/IUserAPI";
-import { PlantDTO } from "../models/plants/PlantDTO";
+import { PetDTO } from "../models/pets/PetDTO";
 import { FiscalReceiptDTO } from "../models/receipts/FiscalReceiptDTO";
 import { useAuth } from "../hooks/useAuthHook";
 import { DashboardNavbar } from "../components/dashboard/navbar/Navbar";
-import { PlantFiltersTypes } from "../types/PlantFilterTypes";
+import { PetFilters } from "../types/PetFilterTypes";
 import { PetsFilter } from "../components/pets/pets_filter/PetsFilter";
 import { PetCard } from "../components/pets/pet_card/PetCard";
 import { PetDialog } from "../components/pets/pet_dialog/PetDialog";
-import { CreatePlantDTO } from "../models/plants/CreatePlantDTO";
+import { CreatePetDTO } from "../models/pets/CreatePetDTO";
+import { UserDTO } from "../models/users/UserDTO";
+import { getErrorMessage } from "../helpers/error_message";
+import { IPetSittingAPI } from "../api/pet_sitting/IPetSittingAPI";
+import { IShelterAPI } from "../api/shelters/IShelterAPI";
+import { PetSittingTab } from "../components/pet_sitting/PetSittingTab";
+import { SheltersTab } from "../components/shelters/SheltersTab";
 
 type DashboardPageProps = {
-  plantAPI: IPlantAPI;
+  petAPI: IPetAPI;
   userAPI: IUserAPI;
+  petSittingAPI: IPetSittingAPI;
+  shelterAPI: IShelterAPI;
 };
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI }) => {
+export const DashboardPage: React.FC<DashboardPageProps> = ({ petAPI, userAPI, petSittingAPI, shelterAPI }) => {
   const { token, user, sessionTime } = useAuth();
-  const [allPets, setAllPets] = useState<PlantDTO[]>([]);
+  const [allPets, setAllPets] = useState<PetDTO[]>([]);
   const [receipts, setReceipts] = useState<FiscalReceiptDTO[]>([]);
+  const [users, setUsers] = useState<UserDTO[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filters, setFilters] = useState<PlantFiltersTypes>({ sold: "all" });
+  const [receiptQuery, setReceiptQuery] = useState<string>("");
+  const [receiptSort, setReceiptSort] = useState<"date_desc" | "date_asc" | "amount_desc" | "amount_asc">("date_desc");
+  const [userQuery, setUserQuery] = useState<string>("");
+  const [userSort, setUserSort] = useState<"name_asc" | "name_desc" | "role">("name_asc");
+  const [filters, setFilters] = useState<PetFilters>({ sold: "all" });
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"store" | "pet-sitting" | "shelters">("store");
 
-  const isAdmin = user?.role === "ADMIN";
+  const isManager = user?.role === "MANAGER";
   const isSeller = user?.role === "SELLER";
   const currentHour = sessionTime ? parseInt(sessionTime.split(":")[0], 10) : new Date().getHours();
   const isShiftOpen = currentHour >= 8 && currentHour < 22;
@@ -42,26 +56,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
     setError("");
 
     try {
-      if (isAdmin) {
-        const [pets, fiscalReceipts] = await Promise.all([
-          plantAPI.getAllPets(token),
-          plantAPI.getReceipts(token),
+      if (isManager) {
+        const [pets, fiscalReceipts, systemUsers] = await Promise.all([
+          petAPI.getAllPets(token),
+          petAPI.getReceipts(token),
+          userAPI.getAllUsers(token),
         ]);
 
         setAllPets(pets);
         setReceipts(fiscalReceipts);
+        setUsers(systemUsers);
       }
 
       if (isSeller) {
-        const availablePets = await plantAPI.getAvailablePets(token);
+        const availablePets = await petAPI.getAvailablePets(token);
         setAllPets(availablePets);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? "Failed to load dashboard data.");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Failed to load dashboard data."));
     } finally {
       setIsLoading(false);
     }
-  }, [isAdmin, isSeller, plantAPI, token]);
+  }, [isManager, isSeller, petAPI, token, userAPI]);
 
   useEffect(() => {
     loadData();
@@ -117,7 +133,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
     return result;
   }, [allPets, filters, searchQuery]);
 
-  const handleAddPet = async (pet: CreatePlantDTO) => {
+  const filteredReceipts = useMemo(() => {
+    const query = receiptQuery.trim().toLowerCase();
+    const result = receipts.filter((receipt) => !query || Object.values(receipt).some((value) => String(value).toLowerCase().includes(query)));
+    return result.sort((a, b) => {
+      if (receiptSort === "date_asc") return new Date(a.soldAt).getTime() - new Date(b.soldAt).getTime();
+      if (receiptSort === "amount_desc") return b.totalAmount - a.totalAmount;
+      if (receiptSort === "amount_asc") return a.totalAmount - b.totalAmount;
+      return new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime();
+    });
+  }, [receiptQuery, receiptSort, receipts]);
+
+  const filteredUsers = useMemo(() => {
+    const query = userQuery.trim().toLowerCase();
+    const result = users.filter((item) => !query || Object.values(item).some((value) => String(value).toLowerCase().includes(query)));
+    return result.sort((a, b) => {
+      if (userSort === "name_desc") return `${b.firstName} ${b.lastName}`.localeCompare(`${a.firstName} ${a.lastName}`);
+      if (userSort === "role") return a.role.localeCompare(b.role);
+      return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+    });
+  }, [userQuery, userSort, users]);
+
+  const handleAddPet = async (pet: CreatePetDTO) => {
     if (!token) {
       return;
     }
@@ -127,12 +164,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
     setStatus("");
 
     try {
-      await plantAPI.createPet(pet, token);
+      await petAPI.createPet(pet, token);
       setStatus("Pet added successfully.");
       setIsDialogOpen(false);
       await loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? "Failed to add pet.");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Failed to add pet."));
     } finally {
       setIsSaving(false);
     }
@@ -147,26 +184,36 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
     setStatus("");
 
     try {
-      await plantAPI.sellPet(petId, token);
+      await petAPI.sellPet(petId, token);
       setStatus("Sale created and fiscal receipt issued.");
       await loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? "Failed to sell pet.");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Failed to sell pet."));
     }
   };
+
+  const navigation = <div className="card flex gap-2" style={{ padding: 8, marginBottom: 20 }}>
+    <button className={`btn ${activeTab === "store" ? "btn-accent" : "btn-ghost"}`} onClick={() => setActiveTab("store")}>Pet Store</button>
+    <button className={`btn ${activeTab === "pet-sitting" ? "btn-accent" : "btn-ghost"}`} onClick={() => setActiveTab("pet-sitting")}>Pet Sitting</button>
+    <button className={`btn ${activeTab === "shelters" ? "btn-accent" : "btn-ghost"}`} onClick={() => setActiveTab("shelters")}>Shelters</button>
+  </div>;
+
+  if (activeTab !== "store") {
+    return <div style={{ minHeight: "100vh", background: "var(--win11-bg)" }}><DashboardNavbar userAPI={userAPI} /><div style={{ maxWidth: 1280, margin: "0 auto", padding: 24 }}>{navigation}{activeTab === "pet-sitting" ? <PetSittingTab api={petSittingAPI} /> : <SheltersTab api={shelterAPI} />}</div></div>;
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--win11-bg)" }}>
       <DashboardNavbar userAPI={userAPI} />
 
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "24px" }}>
+        {navigation}
         <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
           <div>
             <h1 style={{ marginBottom: 4 }}>Pet Store Dashboard</h1>
-            <p style={{ margin: 0 }}>Role: {user?.role}</p>
           </div>
 
-          {isAdmin && (
+          {isManager && (
             <button className="btn btn-accent" onClick={() => setIsDialogOpen(true)}>
               Add Pet
             </button>
@@ -192,7 +239,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
         )}
         {isSeller && !isShiftOpen && (
           <div className="card" style={{ marginBottom: 16, padding: 12, borderColor: "var(--win11-divider)" }}>
-            Sales are available only during shifts 08:00-22:00. Selected session time: {sessionTime ?? `${currentHour}:00`}.
+            Sales are available only during working hours, from 08:00 to 22:00.
           </div>
         )}
 
@@ -226,9 +273,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
               </div>
             )}
 
-            {isAdmin && (
+            {isManager && (
               <div className="card" style={{ padding: 16 }}>
                 <h3 style={{ marginBottom: 8 }}>Fiscal Receipts</h3>
+                <div className="flex gap-2" style={{ marginBottom: 12 }}>
+                  <input type="search" placeholder="Search any receipt field..." value={receiptQuery} onChange={(event) => setReceiptQuery(event.target.value)} />
+                  <select value={receiptSort} onChange={(event) => setReceiptSort(event.target.value as typeof receiptSort)}>
+                    <option value="date_desc">Newest first</option><option value="date_asc">Oldest first</option><option value="amount_desc">Amount high-low</option><option value="amount_asc">Amount low-high</option>
+                  </select>
+                </div>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
@@ -241,7 +294,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
                       </tr>
                     </thead>
                     <tbody>
-                      {receipts.map((receipt) => (
+                      {filteredReceipts.map((receipt) => (
                         <tr key={receipt.id}>
                           <td style={{ padding: 8 }}>{receipt.id}</td>
                           <td style={{ padding: 8 }}>{receipt.sellerName}</td>
@@ -251,6 +304,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ plantAPI, userAPI 
                         </tr>
                       ))}
                     </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {isManager && (
+              <div className="card" style={{ padding: 16, marginTop: 16 }}>
+                <h3 style={{ marginBottom: 8 }}>System Users</h3>
+                <div className="flex gap-2" style={{ marginBottom: 12 }}>
+                  <input type="search" placeholder="Search any user field..." value={userQuery} onChange={(event) => setUserQuery(event.target.value)} />
+                  <select value={userSort} onChange={(event) => setUserSort(event.target.value as typeof userSort)}>
+                    <option value="name_asc">Name A-Z</option><option value="name_desc">Name Z-A</option><option value="role">Role</option>
+                  </select>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead><tr><th style={{ textAlign: "left", padding: 8 }}>Name</th><th style={{ textAlign: "left", padding: 8 }}>Username</th><th style={{ textAlign: "left", padding: 8 }}>Role</th></tr></thead>
+                    <tbody>{filteredUsers.map((item) => <tr key={item.id}><td style={{ padding: 8 }}>{item.firstName} {item.lastName}</td><td style={{ padding: 8 }}>{item.username}</td><td style={{ padding: 8 }}>{item.role}</td></tr>)}</tbody>
                   </table>
                 </div>
               </div>

@@ -5,22 +5,30 @@ import { AddPetDTO } from "../Domain/DTOs/AddPetDTO";
 import { Pet } from "../Domain/models/Pet";
 import { FiscalReceipt } from "../Domain/models/FiscalReceipt";
 import { PetType } from "../Domain/enums/PetType";
-import { ISalesPricingService } from "../Domain/services/ISalesPricingService";
-import { DayShiftPricingService } from "./DayShiftPricingService";
-import { NightShiftPricingService } from "./NightShiftPricingService";
+import { ISalesPricingServiceResolver } from "../Domain/services/ISalesPricingServiceResolver";
+import { ILoggerService } from "../Domain/services/ILoggerService";
+import { LogLevel } from "../Domain/enums/LogLevel";
+import { ISaleRepository } from "../Domain/repositories/ISaleRepository";
 
 export class PetStoreService implements IPetStoreService {
   constructor(
     private readonly petRepository: IPetRepository,
-    private readonly receiptRepository: IReceiptRepository
+    private readonly receiptRepository: IReceiptRepository,
+    private readonly saleRepository: ISaleRepository,
+    private readonly pricingResolver: ISalesPricingServiceResolver,
+    private readonly logger: ILoggerService
   ) {}
 
   async getAllPets(): Promise<Pet[]> {
-    return this.petRepository.getAll();
+    const pets = await this.petRepository.getAll();
+    await this.logger.log(LogLevel.INFO, `Returned ${pets.length} pets.`);
+    return pets;
   }
 
   async getUnsoldPets(): Promise<Pet[]> {
-    return this.petRepository.getUnsold();
+    const pets = await this.petRepository.getUnsold();
+    await this.logger.log(LogLevel.INFO, `Returned ${pets.length} available pets.`);
+    return pets;
   }
 
   async addPet(data: AddPetDTO): Promise<Pet> {
@@ -29,7 +37,11 @@ export class PetStoreService implements IPetStoreService {
       throw new Error("The store can have at most 10 unsold pets.");
     }
 
-    const normalizedType = data.type.toUpperCase() as PetType;
+    if (!data.latinName?.trim() || !data.name?.trim()) {
+      throw new Error("Latin name and pet name are required.");
+    }
+
+    const normalizedType = data.type?.toUpperCase() as PetType;
     if (!Object.values(PetType).includes(normalizedType)) {
       throw new Error("Pet type must be one of: MAMMAL, REPTILE, RODENT.");
     }
@@ -38,13 +50,15 @@ export class PetStoreService implements IPetStoreService {
       throw new Error("Sale price must be greater than zero.");
     }
 
-    return this.petRepository.add({
-      latinName: data.latinName,
-      name: data.name,
+    const pet = await this.petRepository.add({
+      latinName: data.latinName.trim(),
+      name: data.name.trim(),
       type: normalizedType,
       salePrice: data.salePrice,
       sold: false,
     });
+    await this.logger.log(LogLevel.INFO, `Pet '${pet.id}' added.`);
+    return pet;
   }
 
   async sellPet(petId: number, sellerName: string, simulatedTime?: string): Promise<FiscalReceipt> {
@@ -64,33 +78,27 @@ export class PetStoreService implements IPetStoreService {
       throw new Error("Pet is already sold.");
     }
 
-    const pricingService = this.resolvePricingService(hour);
+    const pricingService = this.pricingResolver.resolve(hour);
     const totalAmount = pricingService.calculateFinalAmount(pet.salePrice);
 
-    await this.petRepository.markAsSold(petId);
-
-    return this.receiptRepository.add({
+    const receipt = await this.saleRepository.completeSale({
       sellerName,
       soldAt: now.toISOString(),
       totalAmount,
       petId,
     });
+    await this.logger.log(LogLevel.INFO, `Pet '${petId}' sold by '${sellerName}', receipt '${receipt.id}' issued.`);
+    return receipt;
   }
 
   async getReceipts(): Promise<FiscalReceipt[]> {
-    return this.receiptRepository.getAll();
+    const receipts = await this.receiptRepository.getAll();
+    await this.logger.log(LogLevel.INFO, `Returned ${receipts.length} fiscal receipts.`);
+    return receipts;
   }
 
   private isWithinBusinessHours(hour: number): boolean {
     return hour >= 8 && hour < 22;
-  }
-
-  private resolvePricingService(hour: number): ISalesPricingService {
-    if (hour >= 8 && hour < 16) {
-      return new DayShiftPricingService();
-    }
-
-    return new NightShiftPricingService();
   }
 
   private resolveSaleDate(simulatedTime?: string): Date {

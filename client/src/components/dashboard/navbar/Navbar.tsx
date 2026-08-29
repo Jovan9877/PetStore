@@ -39,9 +39,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ userAPI }) => 
     navigate("/");
   };
 
-  const displayEmail = user?.email ?? authUser?.username ?? "Unknown user";
-  const displayRole = user?.role ?? authUser?.role ?? "";
-
+  const displayName = user ? `${user.firstName} ${user.lastName}` : `${authUser?.firstName ?? ""} ${authUser?.lastName ?? ""}`.trim() || authUser?.username || "Unknown user";
   return (
     <nav className="titlebar" style={{ height: "60px", borderRadius: 0 }}>
       <div className="flex items-center gap-3" style={{ marginLeft: "auto" }}>
@@ -51,10 +49,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ userAPI }) => 
           <>
             <div className="flex flex-col" style={{ gap: 0 }}>
               <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--win11-text-primary)" }}>
-                {displayEmail}
-              </span>
-              <span style={{ fontSize: "11px", color: "var(--win11-text-tertiary)" }}>
-                {displayRole}
+                {displayName}
               </span>
             </div>
 

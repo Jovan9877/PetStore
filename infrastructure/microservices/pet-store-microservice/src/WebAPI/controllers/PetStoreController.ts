@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { IPetStoreService } from "../../Domain/services/IPetStoreService";
-import { ILogerService } from "../../Domain/services/ILogerService";
+import { ILoggerService } from "../../Domain/services/ILoggerService";
 import { LogLevel } from "../../Domain/enums/LogLevel";
 
 export class PetStoreController {
@@ -8,7 +8,7 @@ export class PetStoreController {
 
   constructor(
     private readonly petStoreService: IPetStoreService,
-    private readonly logger: ILogerService
+    private readonly logger: ILoggerService
   ) {
     this.router = Router();
     this.initializeRoutes();

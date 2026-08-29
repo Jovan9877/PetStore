@@ -1,5 +1,7 @@
 export type AuthTokenClaimsType = {
-  id: number;
+  id: string;
   username: string;
+  firstName: string;
+  lastName: string;
   role: string;
 };

@@ -1,8 +1,8 @@
 import React from "react";
-import { PlantDTO } from "../../../models/plants/PlantDTO";
+import { PetDTO } from "../../../models/pets/PetDTO";
 
 type PetCardProps = {
-  pet: PlantDTO;
+  pet: PetDTO;
   canSell: boolean;
   onSell: (id: number) => void;
 };

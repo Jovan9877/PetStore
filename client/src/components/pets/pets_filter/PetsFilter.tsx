@@ -1,9 +1,9 @@
 import React from "react";
-import { PlantFiltersTypes } from "../../../types/PlantFilterTypes";
+import { PetFilters } from "../../../types/PetFilterTypes";
 
 type PetsFilterProps = {
-  filters: PlantFiltersTypes;
-  onChange: (filters: PlantFiltersTypes) => void;
+  filters: PetFilters;
+  onChange: (filters: PetFilters) => void;
 };
 
 export const PetsFilter: React.FC<PetsFilterProps> = ({ filters, onChange }) => {
@@ -18,7 +18,7 @@ export const PetsFilter: React.FC<PetsFilterProps> = ({ filters, onChange }) => 
       >
         <select
           value={filters.type ?? ""}
-          onChange={(e) => onChange({ ...filters, type: (e.target.value || undefined) as PlantFiltersTypes["type"] })}
+          onChange={(e) => onChange({ ...filters, type: (e.target.value || undefined) as PetFilters["type"] })}
         >
           <option value="">All Types</option>
           <option value="MAMMAL">MAMMAL</option>
@@ -28,7 +28,7 @@ export const PetsFilter: React.FC<PetsFilterProps> = ({ filters, onChange }) => 
 
         <select
           value={filters.sold ?? "all"}
-          onChange={(e) => onChange({ ...filters, sold: e.target.value as PlantFiltersTypes["sold"] })}
+          onChange={(e) => onChange({ ...filters, sold: e.target.value as PetFilters["sold"] })}
         >
           <option value="all">All Statuses</option>
           <option value="available">Available</option>
@@ -53,7 +53,7 @@ export const PetsFilter: React.FC<PetsFilterProps> = ({ filters, onChange }) => 
 
         <select
           value={filters.sortBy ?? ""}
-          onChange={(e) => onChange({ ...filters, sortBy: (e.target.value || undefined) as PlantFiltersTypes["sortBy"] })}
+          onChange={(e) => onChange({ ...filters, sortBy: (e.target.value || undefined) as PetFilters["sortBy"] })}
         >
           <option value="">No Sorting</option>
           <option value="name_asc">Name A-Z</option>

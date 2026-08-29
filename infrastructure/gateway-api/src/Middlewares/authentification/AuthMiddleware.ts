@@ -27,7 +27,7 @@ export const authenticate = (
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET ?? ""
+      process.env.JWT_SECRET as string
     ) as AuthTokenClaimsType;
 
     req.user = decoded;

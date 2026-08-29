@@ -5,17 +5,18 @@ import { LoginUserDTO } from '../../Domain/DTOs/LoginUserDTO';
 import { RegistrationUserDTO } from '../../Domain/DTOs/RegistrationUserDTO';
 import { validateLoginData } from '../validators/LoginValidator';
 import { validateRegistrationData } from '../validators/RegisterValidator';
-import { ILogerService } from '../../Domain/services/ILogerService';
+import { ILoggerService } from '../../Domain/services/ILoggerService';
+import { LogLevel } from '../../Domain/enums/LogLevel';
 
 export class AuthController {
   private router: Router;
   private authService: IAuthService;
-  private readonly logerService: ILogerService;
+  private readonly logger: ILoggerService;
 
-  constructor(authService: IAuthService, logerService: ILogerService) {
+  constructor(authService: IAuthService, logger: ILoggerService) {
     this.router = Router();
     this.authService = authService;
-    this.logerService = logerService;
+    this.logger = logger;
     this.initializeRoutes();
   }
 
@@ -30,7 +31,7 @@ export class AuthController {
    */
   private async login(req: Request, res: Response): Promise<void> {
     try {
-      this.logerService.log("Login request received");
+      await this.logger.log(LogLevel.INFO, "Login request received.");
 
       const data: LoginUserDTO = req.body as LoginUserDTO;
 
@@ -43,10 +44,10 @@ export class AuthController {
 
       const result = await this.authService.login(data);
 
-      if (result.authenificated) {
+      if (result.authenticated) {
         const token = jwt.sign(
-          { id: result.userData?.id, username: result.userData?.username, role: result.userData?.role },
-          process.env.JWT_SECRET ?? "",
+          result.userData ?? {},
+          process.env.JWT_SECRET as string,
           { expiresIn: '6h' }
         );
 
@@ -55,7 +56,7 @@ export class AuthController {
         res.status(401).json({ success: false, message: "Invalid credentials!" });
       }
     } catch (error) {
-      this.logerService.log(error as string)
+      await this.logger.log(LogLevel.ERROR, (error as Error).message);
       res.status(500).json({ success: false, message: "Server error" });
     }
   }
@@ -66,7 +67,7 @@ export class AuthController {
    */
   private async register(req: Request, res: Response): Promise<void> {
     try {
-      this.logerService.log("Registration request received");
+      await this.logger.log(LogLevel.INFO, "Registration request received.");
 
       const data: RegistrationUserDTO = req.body as RegistrationUserDTO;
 
@@ -79,19 +80,13 @@ export class AuthController {
 
       const result = await this.authService.register(data);
 
-      if (result.authenificated) {
-        const token = jwt.sign(
-          { id: result.userData?.id, username: result.userData?.username, role: result.userData?.role },
-          process.env.JWT_SECRET ?? "",
-          { expiresIn: '6h' }
-        );
-
-        res.status(201).json({ success: true, message: "Registration successful", token });
+      if (result.authenticated) {
+        res.status(201).json({ success: true, message: "Registration successful" });
       } else {
-        res.status(400).json({ success: false, message: "Registration failed. Username or email may already exist." });
+        res.status(400).json({ success: false, message: "Registration failed. Username may already exist." });
       }
     } catch (error) {
-      this.logerService.log(error as string)
+      await this.logger.log(LogLevel.ERROR, (error as Error).message);
       res.status(500).json({ success: false, message: "Server error" });
     }
   }

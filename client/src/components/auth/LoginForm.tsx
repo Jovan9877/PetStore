@@ -3,18 +3,22 @@ import { IAuthAPI } from "../../api/auth/IAuthAPI";
 import { LoginUserDTO } from "../../models/auth/LoginUserDTO";
 import { useAuth } from "../../hooks/useAuthHook";
 import { useNavigate } from "react-router-dom";
+import { getErrorMessage } from "../../helpers/error_message";
 
 type LoginFormProps = {
   authAPI: IAuthAPI;
 };
 
 export const LoginForm: React.FC<LoginFormProps> = ({ authAPI }) => {
-  const defaultTime = new Date().toTimeString().slice(0, 5);
+  const now = new Date();
+  const defaultTime = now.toTimeString().slice(0, 5);
+  const defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const [formData, setFormData] = useState<LoginUserDTO>({
     username: "",
     password: "",
   });
   const [sessionTime, setSessionTime] = useState<string>(defaultTime);
+  const [sessionDate, setSessionDate] = useState<string>(defaultDate);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -40,16 +44,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ authAPI }) => {
       });
 
       if (response.success && response.token) {
-        login(response.token, sessionTime);
+        login(response.token, `${sessionDate}T${sessionTime}`);
         navigate("/dashboard");
       } else {
         setError(response.message || "Login failed. Please try again.");
+        setFormData({ username: "", password: "" });
       }
-    } catch (err: any) {
-      setError(
-        (typeof err === "string" ? err : err?.response?.data?.message) ||
-        "Login failed. Please try again."
-      );
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Login failed. Please try again."));
+      setFormData({ username: "", password: "" });
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +66,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ authAPI }) => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <label htmlFor="sessionDate" style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 600 }}>
+            Simulation Date
+          </label>
+          <input
+            type="date"
+            id="sessionDate"
+            name="sessionDate"
+            value={sessionDate}
+            onChange={(e) => setSessionDate(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
+        <div className="flex-1">
         <label htmlFor="username" style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 600 }}>
           Username
         </label>
@@ -77,6 +95,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ authAPI }) => {
           required
           disabled={isLoading}
         />
+        </div>
       </div>
 
       <div>

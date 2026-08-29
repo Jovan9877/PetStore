@@ -1,18 +1,20 @@
 import express from 'express';
 import cors from 'cors';
-import "reflect-metadata";
-import { initialize_database } from './Database/InitializeConnection';
 import dotenv from 'dotenv';
-import { Repository } from 'typeorm';
-import { User } from './Domain/models/User';
-import { Db } from './Database/DbConnectionPool';
+import path from "path";
 import { IUsersService } from './Domain/services/IUsersService';
 import { UsersService } from './Services/UsersService';
 import { UsersController } from './WebAPI/controllers/UsersController';
-import { ILogerService } from './Domain/services/ILogerService';
-import { LogerService } from './Services/LogerService';
+import { ILoggerService } from './Domain/services/ILoggerService';
+import { FileLoggerService } from './Services/FileLoggerService';
+import { JsonUserRepository } from './Repositories/JsonUserRepository';
+import { requireInternalApiKey } from './WebAPI/middlewares/InternalApiKeyMiddleware';
 
 dotenv.config({ quiet: true });
+
+if (!process.env.INTERNAL_API_KEY) {
+  throw new Error("INTERNAL_API_KEY must be configured.");
+}
 
 const app = express();
 
@@ -27,18 +29,18 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(requireInternalApiKey);
 
-initialize_database();
-
-// ORM Repositories
-const userRepository: Repository<User> = Db.getRepository(User);
+const userDataPath = path.resolve(process.cwd(), process.env.USER_DATA_PATH ?? "../../Data/users.json");
+const logPath = path.resolve(process.cwd(), "logs/events.log");
+const userRepository = new JsonUserRepository(userDataPath);
 
 // Services
-const userService: IUsersService = new UsersService(userRepository);
-const logerService: ILogerService = new LogerService();
+const loggerService: ILoggerService = new FileLoggerService(logPath);
+const userService: IUsersService = new UsersService(userRepository, loggerService);
 
 // WebAPI routes
-const userController = new UsersController(userService, logerService);
+const userController = new UsersController(userService, loggerService);
 
 // Registering routes
 app.use('/api/v1', userController.getRouter());

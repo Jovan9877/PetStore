@@ -3,12 +3,7 @@ import './WindowFrame.css'
 
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false)
-  const [ready, setReady] = useState(false)
-
-  // Wait for electronAPI to be ready
-  useEffect(() => {
-    if (window.electronAPI) setReady(true)
-  }, [])
+  const ready = Boolean(window.electronAPI)
 
   // Listen for maximize/unmaximize events
   useEffect(() => {
@@ -32,7 +27,7 @@ export function TitleBar() {
       </div>
 
       {/* Centered title */}
-      <div className="title">eCommerce Shop 1.44.2</div>
+      <div className="title">OIB Pet Store</div>
 
       {/* Window control buttons */}
       <div className="window-controls">

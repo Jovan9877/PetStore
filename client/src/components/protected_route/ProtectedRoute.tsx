@@ -47,7 +47,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  if (!requiredRole || !requiredRole.toLowerCase().includes(user?.role.toLowerCase() ?? "")) {
+  const allowedRoles = requiredRole.split(",").map((role) => role.trim().toLowerCase());
+  if (!requiredRole || !allowedRoles.includes(user?.role.toLowerCase() ?? "")) {
     return (
       <div className="overlay">
         <div className="window" style={{ width: "450px" }}>
